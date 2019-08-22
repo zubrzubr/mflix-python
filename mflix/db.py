@@ -183,10 +183,7 @@ def build_query_sort_project(filters):
             Given a genre in the "filters" object, construct a query that
             searches MongoDB for movies with that genre.
             """
-
-            # TODO: Text and Subfield Search
-            # Construct a query that will search for the chosen genre.
-            query = {}
+            query = {"genres": {"$in": filters["genres"]}}
 
     return query, sort, project
 
@@ -228,7 +225,7 @@ def get_movies(filters, page, movies_per_page):
     # Use the cursor to only return the movies that belong on the current page.
     movies = cursor.limit(movies_per_page)
 
-    return (list(movies), total_num_movies)
+    return list(movies), total_num_movies
 
 
 def get_movie(id):
