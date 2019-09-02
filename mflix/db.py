@@ -245,14 +245,32 @@ def get_movie(id):
 
         # TODO: Get Comments
         # Implement the required pipeline.
+
         pipeline = [
             {
-                "$match": {
-                    "_id": ObjectId(id)
+                "$match": {"_id": ObjectId(id)},
+            }, {
+                '$lookup': {
+                    'from': 'comments',
+                    'let': {
+                        'id': '$_id'
+                    },
+                    'pipeline': [
+                        {
+                            '$match': {
+                                '$expr': {
+                                    '$eq': [
+                                        '$movie_id', '$$id'
+                                    ]
+                                }
+                            }
+                        },
+                        {'$sort': {'date': -1}}
+                    ],
+                    'as': 'comments'
                 }
             }
         ]
-
         movie = db.movies.aggregate(pipeline).next()
         return movie
 
@@ -309,9 +327,7 @@ def add_comment(movie_id, user, comment, date):
 
     Name and email must be retrieved from the "user" object.
     """
-    # TODO: Create/Update Comments
-    # Construct the comment document to be inserted into MongoDB.
-    comment_doc = { "some_field": "some_value" }
+    comment_doc = {"movie_id": ObjectId(movie_id), 'name': user.name, 'email': user.email, 'text': comment, 'date': date}
     return db.comments.insert_one(comment_doc)
 
 
@@ -321,12 +337,9 @@ def update_comment(comment_id, user_email, text, date):
     based by both comment _id field as well as the email field to doubly ensure
     the user has permission to edit this comment.
     """
-    # TODO: Create/Update Comments
-    # Use the user_email and comment_id to select the proper comment, then
-    # update the "text" and "date" of the selected comment.
     response = db.comments.update_one(
-        { "some_field": "some_value" },
-        { "$set": { "some_other_field": "some_other_value" } }
+        {"_id": ObjectId(comment_id), "email": user_email},
+        {"$set": {"text": text, "date": date}}
     )
 
     return response
@@ -347,7 +360,7 @@ def delete_comment(comment_id, user_email):
 
     # TODO: Delete Comments
     # Use the user_email and comment_id to delete the proper comment.
-    response = db.comments.delete_one( { "_id": ObjectId(comment_id) } )
+    response = db.comments.delete_one({"_id": ObjectId(comment_id), 'email': user_email})
     return response
 
 
