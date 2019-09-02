@@ -389,7 +389,8 @@ def add_user(name, email, hashedpw):
     """
 
     try:
-        db.users.insert_one(
+        users = db.users.with_options(write_concern=WriteConcern(w=1))
+        users.insert_one(
           {"name": name, "email": email, "password": hashedpw}
         )
         return {"success": True}
