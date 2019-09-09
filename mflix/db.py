@@ -255,7 +255,7 @@ def get_movie(id):
 
     # TODO: Error Handling
     # If an invalid ID is passed to `get_movie`, it should return None.
-    except (StopIteration) as _:
+    except InvalidId as ex:
 
         """
         Ticket: Error Handling
@@ -264,7 +264,7 @@ def get_movie(id):
         StopIteration exception is handled. Both exceptions should result in
         `get_movie` returning None.
         """
-
+        print('Invalid id: %s', ex)
         return None
 
     except Exception as e:
